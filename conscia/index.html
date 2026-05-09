@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Conscia • Exocracy</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="/">Exocracy</a>
+        <nav class="nav">
+          <a href="/docs/">Docs</a>
+          <a href="/conscia/">Conscia</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <h1>Conscia</h1>
+      <p class="lede">
+        Connect to a “real node out there” endpoint (for example: your laptop’s Conscia node tunneled via zrok).
+      </p>
+
+      <section class="card">
+        <h2>Endpoint</h2>
+        <p>Enter the base URL for your Conscia endpoint.</p>
+        <label>
+          <span class="lede" style="display:block;margin:0 0 8px;">Conscia base URL</span>
+          <input id="endpoint" type="url" placeholder="https://YOUR-ZROK-URL" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+        </label>
+        <p style="margin-top:12px;">
+          <button id="save" class="button">Save</button>
+          <button id="test" class="button secondary">Test connection</button>
+        </p>
+        <pre id="out" class="card" style="white-space:pre-wrap;"></pre>
+      </section>
+
+      <section class="card">
+        <h2>Notes</h2>
+        <ul>
+          <li>This page does not assume a specific API yet; it performs a simple GET to <code>/health</code>.</li>
+          <li>Once Conscia endpoints are specified, we will replace this with real Willow/Iroh-compatible requests.</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="/conscia/conscia.js"></script>
+  </body>
+</html>
+
