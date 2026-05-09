@@ -1,10 +1,12 @@
 (function () {
   const $endpoint = document.getElementById("endpoint");
+  const $path = document.getElementById("path");
   const $out = document.getElementById("out");
   const $save = document.getElementById("save");
   const $test = document.getElementById("test");
 
   const KEY = "exocracy.conscia.endpoint";
+  const PATH_KEY = "exocracy.conscia.path";
 
   function setOut(text) {
     $out.textContent = text;
@@ -17,15 +19,22 @@
   function load() {
     const saved = localStorage.getItem(KEY) || "";
     $endpoint.value = saved;
-    setOut(saved ? `Loaded endpoint: ${saved}` : "No endpoint saved yet.");
+    const savedPath = localStorage.getItem(PATH_KEY) || "/api/stats";
+    if ($path) $path.value = savedPath;
+    setOut(
+      saved
+        ? `Loaded endpoint: ${saved}\nTest path: ${savedPath}`
+        : "No endpoint saved yet."
+    );
   }
 
   async function test() {
     const base = normalize($endpoint.value);
     if (!base) return setOut("Please enter an endpoint URL first.");
-    setOut(`Testing: ${base}/health ...`);
+    const path = ($path && $path.value) || "/api/stats";
+    setOut(`Testing: ${base}${path} ...`);
     try {
-      const res = await fetch(`${base}/health`, { method: "GET" });
+      const res = await fetch(`${base}${path}`, { method: "GET" });
       const text = await res.text();
       setOut(`HTTP ${res.status}\n\n${text}`);
     } catch (e) {
@@ -36,11 +45,16 @@
   $save.addEventListener("click", () => {
     const base = normalize($endpoint.value);
     localStorage.setItem(KEY, base);
-    setOut(base ? `Saved endpoint: ${base}` : "Cleared endpoint.");
+    const path = ($path && $path.value) || "/api/stats";
+    localStorage.setItem(PATH_KEY, path);
+    setOut(
+      base
+        ? `Saved endpoint: ${base}\nTest path: ${path}`
+        : "Cleared endpoint."
+    );
   });
 
   $test.addEventListener("click", test);
 
   load();
 })();
-
