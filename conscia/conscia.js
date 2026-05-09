@@ -13,7 +13,18 @@
   }
 
   function normalize(url) {
-    return (url || "").trim().replace(/\/+$/, "");
+    let v = (url || "").trim().replace(/\/+$/, "");
+    if (!v) return v;
+    // If the user pastes a bare host (e.g. "abcd.shares.zrok.io"), prepend a scheme.
+    if (!v.includes("://")) {
+      const lower = v.toLowerCase();
+      const isLocal =
+        lower.startsWith("localhost") ||
+        lower.startsWith("127.0.0.1") ||
+        lower.startsWith("[::1]");
+      v = `${isLocal ? "http" : "https"}://${v}`;
+    }
+    return v;
   }
 
   function load() {
@@ -31,6 +42,8 @@
   async function test() {
     const base = normalize($endpoint.value);
     if (!base) return setOut("Please enter an endpoint URL first.");
+    // Keep the UI consistent with what we will actually use.
+    $endpoint.value = base;
     const path = ($path && $path.value) || "/api/stats";
     setOut(`Testing: ${base}${path} ...`);
     try {
@@ -44,6 +57,7 @@
 
   $save.addEventListener("click", () => {
     const base = normalize($endpoint.value);
+    $endpoint.value = base;
     localStorage.setItem(KEY, base);
     const path = ($path && $path.value) || "/api/stats";
     localStorage.setItem(PATH_KEY, path);
