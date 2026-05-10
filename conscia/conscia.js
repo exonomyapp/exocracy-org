@@ -14,6 +14,14 @@
   const $pollAll = document.getElementById("pollAll");
   const $test = document.getElementById("test");
 
+  const $fetchDiscovery = document.getElementById("fetchDiscovery");
+  const $fetchCapabilities = document.getElementById("fetchCapabilities");
+  const $verifyCapability = document.getElementById("verifyCapability");
+  const $roleRequested = document.getElementById("roleRequested");
+  const $petition = document.getElementById("petition");
+  const $searchQuery = document.getElementById("searchQuery");
+  const $search = document.getElementById("search");
+
   const IDENTITY_KEY = "exocracy.identity.v1";
   const NODES_KEY = "exocracy.conscia.nodes";
   const SELECTED_KEY = "exocracy.conscia.selected";
@@ -213,6 +221,28 @@
     }
   }
 
+  async function requestJson(url, path, method, bodyObj) {
+    try {
+      const identity = loadIdentity();
+      const headers = new Headers();
+      headers.set("Accept", "application/json, text/plain, */*");
+      headers.set("Content-Type", "application/json");
+      const ts = Date.now();
+      if (identity.did) {
+        headers.set("Authorization", `ExoAuth did="${identity.did}", ts="${ts}"`);
+      }
+      const res = await fetch(`${url}${path}`, {
+        method,
+        headers,
+        body: bodyObj ? JSON.stringify(bodyObj) : undefined,
+      });
+      const text = await res.text();
+      return { status: res.status, text };
+    } catch (e) {
+      return { status: 0, text: String(e) };
+    }
+  }
+
   async function pollNode(url) {
     const stats = await request(url, POLL_PATH);
     if (stats.status !== 200) {
@@ -260,6 +290,57 @@
     const path = ($path && $path.value) || POLL_PATH;
     setOut(`Testing: ${selected}${path} ...`);
     const r = await request(selected, path);
+    setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+  }
+
+  async function fetchDiscovery() {
+    const selected = getSelectedUrl();
+    if (!selected) return setOut("No node selected.");
+    setOut(`GET ${selected}/api/discovery ...`);
+    const r = await request(selected, "/api/discovery");
+    setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+  }
+
+  async function fetchCapabilities() {
+    const selected = getSelectedUrl();
+    if (!selected) return setOut("No node selected.");
+    setOut(`GET ${selected}/api/capabilities ...`);
+    const r = await request(selected, "/api/capabilities");
+    setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+  }
+
+  async function verifyMyCapability() {
+    const selected = getSelectedUrl();
+    const identity = loadIdentity();
+    if (!selected) return setOut("No node selected.");
+    if (!identity.did) return setOut("Set your did:peer first (Identity section above).");
+    setOut(`POST ${selected}/api/capabilities/verify ...`);
+    const r = await requestJson(selected, "/api/capabilities/verify", "POST", { did: identity.did });
+    setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+  }
+
+  async function petitionRole() {
+    const selected = getSelectedUrl();
+    const identity = loadIdentity();
+    if (!selected) return setOut("No node selected.");
+    if (!identity.did) return setOut("Set your did:peer first (Identity section above).");
+    const role = ($roleRequested?.value || "").trim() || "Read";
+    setOut(`POST ${selected}/api/capabilities/petition (role=${role}) ...`);
+    const r = await requestJson(selected, "/api/capabilities/petition", "POST", {
+      did: identity.did,
+      role_requested: role,
+    });
+    setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+  }
+
+  async function searchMetadata() {
+    const selected = getSelectedUrl();
+    if (!selected) return setOut("No node selected.");
+    const q = ($searchQuery?.value || "").trim();
+    if (!q) return setOut("Enter a search query first.");
+    const url = `${selected}/api/index/search?query=${encodeURIComponent(q)}`;
+    setOut(`GET ${url} ...`);
+    const r = await request(selected, `/api/index/search?query=${encodeURIComponent(q)}`);
     setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
   }
 
@@ -325,4 +406,10 @@
 
   initIdentityUi();
   render();
+
+  $fetchDiscovery?.addEventListener("click", fetchDiscovery);
+  $fetchCapabilities?.addEventListener("click", fetchCapabilities);
+  $verifyCapability?.addEventListener("click", verifyMyCapability);
+  $petition?.addEventListener("click", petitionRole);
+  $search?.addEventListener("click", searchMetadata);
 })();

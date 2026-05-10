@@ -77,6 +77,42 @@
       </section>
 
       <section class="card">
+        <h2>Engagement</h2>
+        <p class="lede">
+          These actions use the new Conscia “capabilities” and “discovery” endpoints. Select a node above first.
+        </p>
+        <p style="margin-top:12px;">
+          <button id="fetchDiscovery" class="button secondary">Fetch discovery</button>
+          <button id="fetchCapabilities" class="button secondary">Fetch capabilities</button>
+          <button id="verifyCapability" class="button secondary">Verify my role</button>
+        </p>
+
+        <div class="card">
+          <strong>Petition for access</strong>
+          <div class="lede" style="margin-top:6px;">Ask the node operator to grant you a role.</div>
+          <label style="display:block;margin-top:10px;">
+            <span class="lede" style="display:block;margin:0 0 8px;">Role requested</span>
+            <input id="roleRequested" type="text" placeholder="Read / Write / Admin" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+          </label>
+          <p style="margin-top:12px;">
+            <button id="petition" class="button">Submit petition</button>
+          </p>
+        </div>
+
+        <div class="card">
+          <strong>Blind metadata search</strong>
+          <div class="lede" style="margin-top:6px;">Query the node’s local metadata index (no content decryption).</div>
+          <label style="display:block;margin-top:10px;">
+            <span class="lede" style="display:block;margin:0 0 8px;">Query</span>
+            <input id="searchQuery" type="text" placeholder="e.g. catechism, prayer, mutual-aid" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+          </label>
+          <p style="margin-top:12px;">
+            <button id="search" class="button secondary">Search</button>
+          </p>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Notes</h2>
         <ul>
           <li>This page polls each node by calling <code>/api/stats</code> (and optionally <code>/api/peers</code>) so we can observe “many nodes” and their basic relationships.</li>
