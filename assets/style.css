@@ -48,8 +48,22 @@ h1 { font-size: 42px; margin: 28px 0 10px; }
   border-radius: 12px;
   font-weight: 600;
   margin-right: 10px;
+  cursor: pointer;
 }
 .button.secondary { background: transparent; border: 1px solid var(--border); color: var(--fg); }
+.button:hover { filter: brightness(1.05); text-decoration: none; }
+.button:disabled,
+.button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+button.button, button.button.secondary {
+  border: none;
+  font: inherit;
+  line-height: 1;
+}
 
 .footer { border-top: 1px solid var(--border); margin-top: 42px; padding: 22px 0; color: var(--muted); }
 .sep { margin: 0 8px; color: var(--border); }
@@ -57,4 +71,3 @@ h1 { font-size: 42px; margin: 28px 0 10px; }
 code, pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
-

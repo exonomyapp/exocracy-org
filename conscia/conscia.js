@@ -198,6 +198,12 @@
     }
 
     $nodes.appendChild(list);
+
+    // Enable/disable engagement actions based on selection.
+    const hasSelection = Boolean(selected);
+    for (const btn of [$fetchDiscovery, $fetchCapabilities, $verifyCapability, $petition, $search]) {
+      if (btn) btn.disabled = !hasSelection;
+    }
   }
 
   async function request(url, path) {
