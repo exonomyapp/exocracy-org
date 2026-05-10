@@ -21,6 +21,7 @@
   const $petition = document.getElementById("petition");
   const $searchQuery = document.getElementById("searchQuery");
   const $search = document.getElementById("search");
+  const $sduiBody = document.getElementById("sduiBody");
 
   const IDENTITY_KEY = "exocracy.identity.v1";
   const NODES_KEY = "exocracy.conscia.nodes";
@@ -30,6 +31,7 @@
 
   /** in-memory runtime status cache (not persisted) */
   const statusByUrl = new Map();
+  const capabilitiesByUrl = new Map();
 
   function setOut(text) {
     $out.textContent = text;
@@ -312,6 +314,14 @@
     if (!selected) return setOut("No node selected.");
     setOut(`GET ${selected}/api/capabilities ...`);
     const r = await request(selected, "/api/capabilities");
+    if (r.status === 200) {
+      try {
+        capabilitiesByUrl.set(selected, JSON.parse(r.text));
+      } catch (_) {
+        capabilitiesByUrl.set(selected, { raw: r.text });
+      }
+      renderSdui(selected);
+    }
     setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
   }
 
@@ -357,6 +367,60 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+  }
+
+  function renderSdui(url) {
+    if (!$sduiBody) return;
+    const caps = capabilitiesByUrl.get(url);
+    if (!caps) {
+      $sduiBody.innerHTML =
+        '<div class="lede">Fetch capabilities to populate this section.</div>';
+      return;
+    }
+
+    const widgets = Array.isArray(caps.sdui_widgets) ? caps.sdui_widgets : [];
+    const role = caps.node_role ? String(caps.node_role) : "—";
+    const perf = caps.performance_target ? JSON.stringify(caps.performance_target) : "{}";
+
+    const parts = [];
+    parts.push(`<div class="lede"><strong>Node role:</strong> ${escapeHtml(role)}</div>`);
+    parts.push(`<div class="lede" style="margin-top:6px;"><strong>Performance target:</strong> <code>${escapeHtml(perf)}</code></div>`);
+    parts.push(`<div class="lede" style="margin-top:10px;"><strong>Widgets:</strong> ${escapeHtml(widgets.join(", ") || "—")}</div>`);
+
+    // FederationToggle → expose /api/federation/toggle
+    if (widgets.includes("FederationToggle")) {
+      parts.push(`
+        <div class="card" style="margin-top:12px;">
+          <strong>Federation</strong>
+          <div class="lede" style="margin-top:6px;">Toggle federation mode for this node.</div>
+          <label style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+            <input id="fedActive" type="checkbox" />
+            <span class="lede">Active</span>
+          </label>
+          <p style="margin-top:12px;">
+            <button id="setFederation" class="button secondary">Apply</button>
+          </p>
+        </div>
+      `);
+    }
+
+    // MetadataSearch → hint that Search is available (already below)
+    if (widgets.includes("MetadataSearch")) {
+      parts.push(`<div class="lede" style="margin-top:10px;">Metadata search is available below.</div>`);
+    }
+
+    $sduiBody.innerHTML = parts.join("\n");
+
+    // Wire federation toggle button if present.
+    const btn = document.getElementById("setFederation");
+    const chk = document.getElementById("fedActive");
+    if (btn && chk) {
+      btn.addEventListener("click", async () => {
+        setOut(`POST ${url}/api/federation/toggle ...`);
+        const r = await requestJson(url, "/api/federation/toggle", "POST", { active: Boolean(chk.checked) });
+        setOut(`HTTP ${r.status}\n\n${pretty(r.text)}`);
+      });
+    }
   }
 
   $addNode.addEventListener("click", () => {
@@ -412,6 +476,7 @@
 
   initIdentityUi();
   render();
+  renderSdui(getSelectedUrl());
 
   $fetchDiscovery?.addEventListener("click", fetchDiscovery);
   $fetchCapabilities?.addEventListener("click", fetchCapabilities);
