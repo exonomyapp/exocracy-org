@@ -197,8 +197,13 @@
       const identity = loadIdentity();
       const headers = new Headers();
       headers.set("Accept", "*/*");
-      if (identity.did) headers.set("X-Exocracy-DID", identity.did);
-      headers.set("X-Exocracy-Time", String(Date.now()));
+      // "Real" scheme direction:
+      // Use a proper Authorization scheme that can later carry signatures.
+      // (CORS preflight still applies; Conscia should allow Authorization header.)
+      const ts = Date.now();
+      if (identity.did) {
+        headers.set("Authorization", `ExoAuth did="${identity.did}", ts="${ts}"`);
+      }
 
       const res = await fetch(`${url}${path}`, { method: "GET", headers });
       const text = await res.text();
