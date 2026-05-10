@@ -24,32 +24,43 @@
       </p>
 
       <section class="card">
-        <h2>Endpoint</h2>
-        <p>Enter the base URL for your Conscia endpoint (for example: the public zrok URL that forwards to your Conscia HTTP port).</p>
+        <h2>Nodes</h2>
+        <p>
+          Save multiple Conscia node endpoints (for example: <code>https://consciawarsaw.share.zrok.io</code>,
+          <code>https://conscialivorno.share.zrok.io</code>) and observe them together.
+        </p>
         <label>
-          <span class="lede" style="display:block;margin:0 0 8px;">Conscia base URL</span>
-          <input id="endpoint" type="url" placeholder="https://YOUR-ZROK-URL" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+          <span class="lede" style="display:block;margin:0 0 8px;">Node name</span>
+          <input id="nodeName" type="text" placeholder="consciawarsaw" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+        </label>
+        <label style="display:block;margin-top:12px;">
+          <span class="lede" style="display:block;margin:0 0 8px;">Node URL</span>
+          <input id="nodeUrl" type="url" placeholder="https://YOUR-ZROK-URL" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
         </label>
         <label style="display:block;margin-top:12px;">
           <span class="lede" style="display:block;margin:0 0 8px;">Test path</span>
           <select id="path" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);">
             <option value="/api/stats">/api/stats (Conscia daemon default)</option>
+            <option value="/api/peers">/api/peers (peer list)</option>
             <option value="/metrics">/metrics (Prometheus)</option>
             <option value="/">/ (dashboard HTML)</option>
           </select>
         </label>
         <p style="margin-top:12px;">
-          <button id="save" class="button">Save</button>
-          <button id="test" class="button secondary">Test connection</button>
+          <button id="addNode" class="button">Add node</button>
+          <button id="pollAll" class="button secondary">Poll all</button>
+          <button id="test" class="button secondary">Test selected</button>
         </p>
-        <pre id="out" class="card" style="white-space:pre-wrap;"></pre>
+        <div id="nodes" class="card"></div>
+        <pre id="out" class="card" style="white-space:pre-wrap; word-break:break-word; overflow:auto;"></pre>
       </section>
 
       <section class="card">
         <h2>Notes</h2>
         <ul>
-          <li>This page performs a simple GET to a selected path (default: <code>/api/stats</code>).</li>
-          <li>If your zrok URL points at something else (like a signaling relay), <code>/api/stats</code> will not exist—switch the zrok share to your Conscia HTTP port.</li>
+          <li>This page polls each node by calling <code>/api/stats</code> (and optionally <code>/api/peers</code>) so we can observe “many nodes” and their basic relationships.</li>
+          <li>If a node URL points at something else (like a signaling relay), <code>/api/stats</code> will 404.</li>
+          <li>For cross-site calls from <code>exocracy.org</code>, the Conscia HTTP server must allow CORS (you just added this in ExoSystems).</li>
         </ul>
       </section>
     </main>
