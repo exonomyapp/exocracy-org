@@ -1,4 +1,10 @@
 (function () {
+  const $did = document.getElementById("did");
+  const $secret = document.getElementById("secret");
+  const $saveIdentity = document.getElementById("saveIdentity");
+  const $clearIdentity = document.getElementById("clearIdentity");
+  const $identityHint = document.getElementById("identityHint");
+
   const $nodeName = document.getElementById("nodeName");
   const $nodeUrl = document.getElementById("nodeUrl");
   const $path = document.getElementById("path");
@@ -8,6 +14,7 @@
   const $pollAll = document.getElementById("pollAll");
   const $test = document.getElementById("test");
 
+  const IDENTITY_KEY = "exocracy.identity.v1";
   const NODES_KEY = "exocracy.conscia.nodes";
   const SELECTED_KEY = "exocracy.conscia.selected";
   const PATH_KEY = "exocracy.conscia.path";
@@ -18,6 +25,10 @@
 
   function setOut(text) {
     $out.textContent = text;
+  }
+
+  function setIdentityHint(text) {
+    if ($identityHint) $identityHint.textContent = text;
   }
 
   function pretty(text) {
@@ -42,6 +53,24 @@
       v = `${isLocal ? "http" : "https"}://${v}`;
     }
     return v;
+  }
+
+  function loadIdentity() {
+    const raw = localStorage.getItem(IDENTITY_KEY);
+    if (!raw) return { did: "", secret: "" };
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        did: typeof parsed.did === "string" ? parsed.did : "",
+        secret: typeof parsed.secret === "string" ? parsed.secret : "",
+      };
+    } catch (_) {
+      return { did: "", secret: "" };
+    }
+  }
+
+  function saveIdentity(identity) {
+    localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
   }
 
   function loadNodes() {
@@ -165,7 +194,13 @@
 
   async function request(url, path) {
     try {
-      const res = await fetch(`${url}${path}`, { method: "GET" });
+      const identity = loadIdentity();
+      const headers = new Headers();
+      headers.set("Accept", "*/*");
+      if (identity.did) headers.set("X-Exocracy-DID", identity.did);
+      headers.set("X-Exocracy-Time", String(Date.now()));
+
+      const res = await fetch(`${url}${path}`, { method: "GET", headers });
       const text = await res.text();
       return { status: res.status, text };
     } catch (e) {
@@ -252,10 +287,37 @@
   $pollAll.addEventListener("click", pollAll);
   $test.addEventListener("click", testSelected);
 
+  function initIdentityUi() {
+    const identity = loadIdentity();
+    if ($did) $did.value = identity.did || "";
+    if ($secret) $secret.value = identity.secret || "";
+
+    if (identity.did) {
+      setIdentityHint("Saved. Requests will include your did:peer as a header.");
+    } else {
+      setIdentityHint("Not set yet. Paste your did:peer from your follower app when ready.");
+    }
+
+    $saveIdentity?.addEventListener("click", () => {
+      const did = ($did?.value || "").trim();
+      const secret = ($secret?.value || "").trim();
+      saveIdentity({ did, secret });
+      setIdentityHint(did ? "Saved. Requests will include your did:peer as a header." : "Cleared.");
+    });
+
+    $clearIdentity?.addEventListener("click", () => {
+      saveIdentity({ did: "", secret: "" });
+      if ($did) $did.value = "";
+      if ($secret) $secret.value = "";
+      setIdentityHint("Cleared.");
+    });
+  }
+
   // Persist path selection
   $path?.addEventListener("change", () => {
     localStorage.setItem(PATH_KEY, $path.value || POLL_PATH);
   });
 
+  initIdentityUi();
   render();
 })();

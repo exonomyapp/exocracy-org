@@ -24,6 +24,27 @@
       </p>
 
       <section class="card">
+        <h2>Identity (did:peer)</h2>
+        <p class="lede">
+          This page can attach your <code>did:peer</code> identifier to requests so Conscia can attribute activity.
+          (Your secret should stay on your device; we do not send it.)
+        </p>
+        <label>
+          <span class="lede" style="display:block;margin:0 0 8px;">Your did:peer</span>
+          <input id="did" type="text" placeholder="did:peer:2.Vz..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+        </label>
+        <label style="display:block;margin-top:12px;">
+          <span class="lede" style="display:block;margin:0 0 8px;">Your secret (stored locally; not sent)</span>
+          <input id="secret" type="password" placeholder="base58 secret (optional)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--fg);" />
+        </label>
+        <p style="margin-top:12px;">
+          <button id="saveIdentity" class="button">Save identity</button>
+          <button id="clearIdentity" class="button secondary">Clear</button>
+        </p>
+        <div class="lede" id="identityHint"></div>
+      </section>
+
+      <section class="card">
         <h2>Nodes</h2>
         <p>
           Save multiple Conscia node endpoints (for example: <code>https://consciawarsaw.share.zrok.io</code>,
