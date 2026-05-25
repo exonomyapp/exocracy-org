@@ -1,0 +1,65 @@
+name: OVH Testbox - Configure
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ovh-testbox-config
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      # OpenStack app-cred auth (optional, but recommended to ensure SSH ingress)
+      OS_AUTH_URL: ${{ secrets.OS_AUTH_URL }}
+      OS_REGION_NAME: ${{ secrets.OS_REGION_NAME }}
+      OS_INTERFACE: public
+      OS_IDENTITY_API_VERSION: "3"
+      OS_AUTH_TYPE: v3applicationcredential
+      OS_APPLICATION_CREDENTIAL_ID: ${{ secrets.OS_APPLICATION_CREDENTIAL_ID }}
+      OS_APPLICATION_CREDENTIAL_SECRET: ${{ secrets.OS_APPLICATION_CREDENTIAL_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_SSH_KEY"
+
+      - name: Install OpenStack SDK (for SG rules)
+        if: ${{ env.OS_APPLICATION_CREDENTIAL_ID != '' && env.OS_APPLICATION_CREDENTIAL_SECRET != '' }}
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install openstacksdk
+
+      - name: Ensure SSH is allowed (OpenStack security group)
+        if: ${{ env.OS_APPLICATION_CREDENTIAL_ID != '' && env.OS_APPLICATION_CREDENTIAL_SECRET != '' }}
+        run: |
+          python3 .github/infra/openstack_security_group.py
+
+      - name: Write SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf "%s" "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Connectivity check
+        run: |
+          nc -vz -w 5 "$DEPLOY_HOST" 22
+
+      - name: Run hardening script (idempotent)
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            'bash -s' < .github/infra/harden_ubuntu.sh
+
