@@ -27,13 +27,33 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Static site: upload repository contents as the Pages artifact
+      - name: Setup Python (MkDocs)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install mkdocs-material
+
+      - name: Build Pages artifact
+        run: |
+          rm -rf _site
+          mkdir -p _site
+
+          # Copy the website shell (root + assets + app pages).
+          cp -r assets conscia index.html CNAME _site/
+
+          # Build docs into /docs/ using MkDocs.
+          mkdocs build --strict --config-file mkdocs.yml --site-dir _site/docs
+
+      # Upload the built artifact (not the raw repo)
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
-

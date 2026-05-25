@@ -1,0 +1,23 @@
+site_name: Exocracy Docs
+site_url: https://exocracy.org/docs/
+
+# We keep MkDocs source separate from the published /docs/ folder.
+docs_dir: docs_src
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - ThreeSteps:
+      - Overview: three-steps.md
+  - Conscia:
+      - Node connectivity UI: conscia.md
+
+# Keep URLs stable on GitHub Pages under /docs/
+use_directory_urls: true
+
